@@ -1,0 +1,110 @@
+def saveData_afterEdit(self, row):
+        editCustomer_dict = {}
+        editDate_dict = {}
+        editFACT_dict = {}
+        
+        #Check Condition
+        checkList = []
+        for col in range (2, 30):
+            checkList.append(self.homePage.da_table.item(row,col).text())
+
+        if self.checkCondition.checkCondition(checkList) == "":
+            editCustomer_dict.update({"userId": int(self.homePage.da_table.item(row,2).text()),"yearBirth": int(self.homePage.da_table.item(row,3).text()),"education":self.homePage.da_table.item(row,4).text(), "maritalStatus":self.homePage.da_table.item(row,5).text(),"income": int(self.homePage.da_table.item(row,6).text()),"kidhome": int(self.homePage.da_table.item(row,7).text()),"teenhome": int(self.homePage.da_table.item(row,8).text()),"country":self.homePage.da_table.item(row,29).text()})
+            #--------------------------
+            dateId = self.database_manager.db.execute("SELECT dateId FROM FACT WHERE userId = ?", self.homePage.da_table.item(row,2).text()).fetchone()[0]
+
+            date_object = datetime.strptime(self.homePage.da_table.item(row,9).text(), '%m/%d/%Y')  # Adjust the format if needed
+            day = int(date_object.day)
+            month = int(date_object.month)
+            year = int(date_object.year)
+
+            editCustomer_dict.update({"dateId": int(dateId), "yearEnroll": int(year), "monthEroll": int(month), "dayEnroll": int(day)})
+
+            # ---------------------------------
+            editFACT_dict.update({"userId": int(self.homePage.da_table.item(row,2).text()), "dateId": int(dateId)})
+            for i in range(17,22):
+                for key in range(2, 7):
+                    editFACT_dict.update({f"{self.database_manager.columns[key]}": int(self.homePage.da_table.item(row,i).text())})
+            for i in range(11,17):
+                for key in range(7, 12):
+                    editFACT_dict.update({f"{self.database_manager.columns[key]}": int(self.homePage.da_table.item(row,i).text())})
+            for i in range(22,29):
+                for key in range(12, 19):
+                    editFACT_dict.update({f"{self.database_manager.columns[key]}": int(self.homePage.da_table.item(row,i).text())})
+            editFACT_dict.update({"recency": int(self.homePage.da_table.item(row,10).text()), "dateId": int(dateId)})
+            
+            self.database_manager.edit_function(editCustomer_dict, editDate_dict, editFACT_dict)
+            noti = QMessageBox.setText("Save Successfully!")
+
+        else: 
+            print(self.checkCondition.checkCondition(checkList))
+
+
+            def importCSV_Table(self, filter_list: list):
+        self.database_manager.updateDB()
+        if filter_list == []:
+            self.noti("The system doesnt have any invoice.")
+        else:
+            self.database_manager.importCSV_SQL(filter_list)
+
+            self.homePage.da_table.setRowCount(0)
+            for i in range(len(filter_list)):
+                rowPosition = self.homePage.da_table.rowCount()
+                self.homePage.da_table.insertRow(rowPosition)
+                for j in range(28):
+                    self.homePage.da_table.setItem(rowPosition, j+2, QTableWidgetItem(str(filter_list[i][j])))
+        self.database_manager.importCSV_SQL(self.csv_handler.filter_list )
+        for row in range(self.homePage.da_table.rowCount()):
+            button = QPushButton("Edit")
+            self.homePage.da_table.setCellWidget(row, 0, button)
+            button.clicked.connect(lambda _, row = row: self.editData(row))
+        for row in range(self.homePage.da_table.rowCount()):
+            button = QPushButton("Delete")
+            self.homePage.da_table.setCellWidget(row, 1, button)
+            
+            button.clicked.connect(lambda _, row = row: self.deleteData(int(self.homePage.da_table.item(row,2).text())))
+        for row in range(self.homePage.da_table.rowCount()):
+            for column in range(2, self.homePage.da_table.columnCount()):
+                item = self.homePage.da_table.item(row, column)
+                item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+
+
+
+
+                def updateDATable(self):
+        self.database_manager.updateDB()
+        #Declare filter list
+        
+        self.DATableList.clear()
+        print(self.DATableList)
+
+        if self.database_manager.factTable == []:
+            pass
+        else:
+            print(len(self.database_manager.factTable))
+            for row in range(len(self.database_manager.factTable)):
+                self.DATableList.append([])
+                print(row)
+                #fill col from 0 - 6
+                for col in range(7):
+                    print(self.database_manager.customerTable)
+                    print(self.database_manager.customerTable[row])
+                    self.DATableList[row].append(self.database_manager.customerTable[row][col])
+                #fill col 7
+                date = str(self.database_manager.dateTable[row][2]) + "/" +str(self.database_manager.dateTable[row][3]) + "/" +str(self.database_manager.dateTable[row][1]) 
+                self.DATableList[row].append(date)
+                #fill col 8
+                self.DATableList[row].append(self.database_manager.factTable[row][20])
+                #fill col 9 - 14
+                for col in range(7,13):
+                    self.DATableList[row].append(self.database_manager.factTable[row][col])
+                #fill col 15 - 19
+                for col in range(2,7):
+                    self.DATableList[row].append(self.database_manager.factTable[row][col])
+                #fill col 20 - 26
+                for col in range(13,20):
+                    self.DATableList[row].append(self.database_manager.factTable[row][col])
+                #fill col 27
+                self.DATableList[row].append(self.database_manager.factTable[row][1])
+
+            
